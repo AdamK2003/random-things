@@ -1,0 +1,26 @@
+#!/bin/bash
+if [[ "$1" = '' ]]; then
+  path="`readlink -m ./`"
+else
+  path="`readlink -m "$1"`"
+fi
+cd "$path"
+echo `pwd`
+x=0
+find "$path/" -maxdepth 1 -type f | sed 's/.*\///' | while read x; do
+  mime=`xdg-mime query filetype "$path/$x"`
+  if [[ "$mime" = "audio/"* ]] && [[ "$x" != playAll.m3u ]]; then
+    echo "1 $x"
+    echo "$x" >> "$path/playAll.m3u.temp"
+  else
+    echo "0 $x"
+  fi
+done
+if test -f "$path/playAll.m3u.temp"; then
+  sort "$path/playAll.m3u.temp" > "$path/playAll.m3u"
+  chmod +x "$path/playAll.m3u"
+  rm "$path/playAll.m3u.temp"
+  echo "All done!"
+else
+  echo "No music files found!"
+fi
